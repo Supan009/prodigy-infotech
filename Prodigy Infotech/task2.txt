@@ -1,0 +1,63 @@
+[12:46 pm, 5/9/2024] Supan Gandhi ☕: import numpy as np 
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import MinMaxScaler
+Data Collection & Analysis
+# loading the data from csv file to a Pandas DataFrame
+customer_data = pd.read_csv('../input/customer-segmentation-tutorial-in-python/Mall_Customers.csv')
+# first 5 rows in the dataframe
+customer_data.head()
+
+customer_data.shape
+
+customer_data.info()
+[12:48 pm, 5/9/2024] Supan Gandhi ☕: customer_data.isnull().sum()
+
+X = customer_data.iloc[:,[3,4]]
+# Normalizing the data
+scaler = MinMaxScaler()
+X_scaled = scaler.fit_transform(X)
+X = pd.DataFrame(X_scaled, columns=X.columns)
+Selecting Optimal No. of Clusters
+¶
+# finding wcss value for different number of clusters
+wcss = []
+
+for i in range(1,15):
+    kmeans = KMeans(n_clusters=i, n_init='auto', random_state=42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)
+    
+    
+# plotting elbow graph
+sns.set()
+plt.figure(figsize=(10,4))
+plt.plot(range(1,15), wcss)
+plt.title('The Elbow Point Graph', size=16)
+plt.xlabel('Number of Clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+kmeans = KMeans(n_clusters=5, n_init='auto', random_state=42)
+
+# Fit the KMeans algorithm to the data X and predict the cluster for each data point.
+Y = kmeans.fit_predict(X)
+
+# Add a new column 'Cluster' to the original dataset X, storing the cluster label for each data point.
+X['Cluster'] = Y
+Visualizing all the Clusters
+# Plotting all clusters with Seaborn
+plt.figure(figsize=(12,5))
+sns.scatterplot(data=X, x='Annual Income (k$)', y='Spending Score (1-100)', hue='Cluster', palette='rainbow_r', s=50)
+
+# Plot the centroids
+centroids = pd.DataFrame(kmeans.cluster_centers_, columns=['Annual Income (k$)', 'Spending Score (1-100)'])
+sns.scatterplot(data=centroids, x='Annual Income (k$)', y='Spending Score (1-100)', color='green', s=100, label='Centroids', marker='^')
+plt.title('Customer Groups')
+plt.show()
+
+Conclusion
+# Analyzing Clusters
+X.groupby(by='Cluster').mean().reset_index().style.background_gradient(cmap='Greens')
